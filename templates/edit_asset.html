@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Edit Asset | {{ asset.asset_name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; text-align: center;">
+    <h1 style="font-size: 3.5rem;">Edit Asset Details</h1>
+    <p style="color: var(--text-muted); font-weight: 700; font-size: 1.1rem;">Update information for Asset #{{ asset.id }}.</p>
+</div>
+
+<div class="form-page-wrapper">
+    <div class="form-card-premium">
+        <form action="/edit_asset/{{ asset.id }}" method="POST">
+            <div class="form-grid-symmetrical">
+                <!-- Asset Info -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-tag"></i> ASSET NAME</label>
+                    <input type="text" name="name" value="{{ asset.asset_name }}" required placeholder="e.g. MacBook Pro, Dell Server">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-microchip"></i> ASSET TYPE</label>
+                    <input type="text" name="type" value="{{ asset.asset_type }}" required placeholder="Hardware, Software, etc.">
+                </div>
+
+                <!-- Dates -->
+                <div class="form-group">
+                    <label><i class="fa-solid fa-calendar-check"></i> PURCHASE DATE</label>
+                    <input type="date" name="purchase_date" value="{{ asset.purchase_date.strftime('%Y-%m-%d') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-shield-halved"></i> WARRANTY EXpiry</label>
+                    <input type="date" name="warranty" value="{{ asset.warranty_expiry.strftime('%Y-%m-%d') }}" required>
+                </div>
+
+                <!-- Status -->
+                <div class="form-group form-group-full">
+                    <label><i class="fa-solid fa-signal"></i> CURRENT STATUS</label>
+                    <select name="status" required style="border-left: 5px solid var(--accent-primary);">
+                        <option value="Available" {% if asset.status == 'Available' %}selected{% endif %}>🟢 AVAILABLE</option>
+                        <option value="Assigned" {% if asset.status == 'Assigned' %}selected{% endif %}>🔵 ASSIGNED TO EMPLOYEE</option>
+                        <option value="Under Maintenance" {% if asset.status == 'Under Maintenance' %}selected{% endif %}>🟠 UNDER MAINTENANCE</option>
+                        <option value="Disposed" {% if asset.status == 'Disposed' %}selected{% endif %}>🔴 DISPOSED / RETIRED</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit-custom" style="width: 100%; margin-top: 3.5rem; padding: 1.5rem; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <i class="fa-solid fa-floppy-disk"></i> SAVE CHANGES
+            </button>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/asset/{{ asset.id }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 800; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;" class="back-link">
+                    <i class="fa-solid fa-chevron-left"></i> CANCEL
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .back-link:hover {
+        color: var(--accent-rose) !important;
+        transform: translateX(-5px);
+    }
+</style>
+{% endblock %}

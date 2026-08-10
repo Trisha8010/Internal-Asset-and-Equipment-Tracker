@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Add Employee{% endblock %}
+
+{% block content %}
+
+<div class="form-page-wrapper">
+    
+    <div class="form-card">
+
+        <h2 class="form-title">
+            <i class="fa fa-user-plus"></i> Add Employee
+        </h2>
+
+        <form method="POST">
+
+            <div class="mb-3">
+                <label for="code">Employee Code</label>
+                <input type="text" id="code" name="employee_code" class="form-control" placeholder="EMP-001" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="John Doe" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="department">Department</label>
+                <input type="text" id="department" name="department" class="form-control" placeholder="IT">
+            </div>
+
+            <div class="mb-4">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="name@company.com">
+            </div>
+
+            <button type="submit" class="btn-submit-custom">
+                <i class="fa fa-save"></i> Add Employee
+            </button>
+
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="/" class="back-link">← Back to Dashboard</a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

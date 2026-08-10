@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Strategic Analytics{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 3.5rem;">
+    <h1 style="color: var(--text-main);">Strategic Analytics</h1>
+    <p style="color: var(--text-muted); font-weight: 600;">High-fidelity financial metrics and infrastructure trajectory.</p>
+</div>
+
+<div class="dashboard" style="margin-bottom: 4rem;">
+    <div class="card" style="border-top: 5px solid var(--accent-primary);">
+        <label style="color: var(--text-muted); letter-spacing: 1.5px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">TOTAL ASSET VALUE</label>
+        <h2 style="color: var(--text-main); margin-top: 15px;">₹{{ "{:,.2f}".format(total_value) }}</h2>
+        <p style="font-size: 0.8rem; margin-top: 5px;">CAPITAL INVESTMENT</p>
+    </div>
+    <div class="card" style="border-top: 5px solid var(--accent-danger);">
+        <label style="color: var(--text-muted); letter-spacing: 1.5px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">MAINTENANCE COST</label>
+        <h2 style="color: var(--accent-danger); margin-top: 15px;">₹{{ "{:,.2f}".format(total_maintenance) }}</h2>
+        <p style="font-size: 0.8rem; margin-top: 5px;">OPERATIONAL OVERHEAD</p>
+    </div>
+    <div class="card" style="border-top: 5px solid var(--accent-success);">
+        <label style="color: var(--text-muted); letter-spacing: 1.5px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">ROI PROJECTION</label>
+        <h2 style="color: var(--accent-success); margin-top: 15px;">84%</h2>
+        <p style="font-size: 0.8rem; margin-top: 5px;">NETWORK EFFICIENCY</p>
+    </div>
+</div>
+
+<div class="charts" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+    <div class="table-card">
+        <h3 style="margin-bottom: 2.5rem; color: var(--text-main); font-weight: 800;">Distribution by Sector</h3>
+        <div style="height: 380px;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="table-card">
+        <h3 style="margin-bottom: 2.5rem; color: var(--text-main); font-weight: 800;">Investment Trajectory</h3>
+        <div style="height: 380px;">
+            <canvas id="investmentChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+    Chart.defaults.font.weight = '600';
+
+    // Category Chart
+    const catCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(catCtx, {
+        type: 'polarArea',
+        data: {
+            labels: {{ categories | safe }},
+            datasets: [{
+                data: {{ cat_counts | safe }},
+                backgroundColor: [
+                    'rgba(37, 99, 235, 0.6)',
+                    'rgba(79, 70, 229, 0.6)',
+                    'rgba(16, 185, 129, 0.6)',
+                    'rgba(245, 158, 11, 0.6)',
+                    'rgba(239, 68, 68, 0.6)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: { grid: { color: '#f1f5f9' }, ticks: { display: false } }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 30, usePointStyle: true } }
+            }
+        }
+    });
+
+    // Investment Chart
+    const invCtx = document.getElementById('investmentChart').getContext('2d');
+    new Chart(invCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Acquisition Value (₹)',
+                data: [15000, 22000, 18000, 28000, 24000, 32000],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                borderWidth: 4,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#2563eb',
+                pointBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { grid: { color: '#f1f5f9' }, border: { display: false } },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+{% endblock %}

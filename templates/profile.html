@@ -1,0 +1,12 @@
+{% extends "base.html" %} {% block title %}Profile{% endblock %} {% block
+content %}
+<div class="form-page-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">User Profile</h2>
+
+    <p><strong>Username:</strong> {{ user.username }}</p>
+
+    <a href="/logout" class="btn-submit-custom">Logout</a>
+  </div>
+</div>
+{% endblock %}

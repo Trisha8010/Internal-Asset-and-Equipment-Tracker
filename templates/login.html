@@ -1,0 +1,35 @@
+{% extends "base.html" %} 
+{% block title %}Authentication{% endblock %} 
+{% block content %}
+<div class="form-page-wrapper">
+  <div class="form-card" style="max-width: 450px;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white;">
+            <i class="fa-solid fa-lock fa-2xl"></i>
+        </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800;">Secure Login</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Enter your credentials to access AssetSys Pro</p>
+    </div>
+
+    <form method="POST">
+      <div class="form-group">
+        <label>USERNAME</label>
+        <input type="text" name="username" required placeholder="admin" />
+      </div>
+
+      <div class="form-group">
+        <label>PASSWORD</label>
+        <input type="password" name="password" required placeholder="••••••••" />
+      </div>
+
+      <button type="submit" class="btn-submit-custom">
+        Access Dashboard <i class="fa-solid fa-arrow-right" style="margin-left: 10px;"></i>
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Don't have an account? <a href="/signup" style="color: var(--accent-primary); font-weight: 600; text-decoration: none;">Register Now</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

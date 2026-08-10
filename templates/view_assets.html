@@ -1,0 +1,132 @@
+{% extends "base.html" %} 
+{% block title %}Asset Inventory{% endblock %} 
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3.5rem;">
+    <div>
+        <h1 style="font-size: 3.5rem;">Asset Inventory</h1>
+        <p style="color: var(--text-muted); font-weight: 700; font-size: 1.1rem;">Full list of all hardware and equipment owned by the company.</p>
+    </div>
+    {% if current_user.role in ['Admin', 'Manager'] %}
+    <div style="display: flex; gap: 15px;">
+        <a href="/export_assets" class="btn-submit-custom" style="background: var(--accent-emerald); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); padding: 0.8rem 1.5rem; font-size: 0.85rem;">
+            <i class="fa-solid fa-file-csv" style="margin-right: 8px;"></i> EXPORT CSV
+        </a>
+        <form action="/import_assets" method="POST" enctype="multipart/form-data" id="importForm" style="display: none;">
+            <input type="file" name="file" id="importInput" onchange="document.getElementById('importForm').submit()">
+        </form>
+        <button onclick="document.getElementById('importInput').click()" class="btn-submit-custom" style="background: var(--accent-primary); padding: 0.8rem 1.5rem; font-size: 0.85rem;">
+            <i class="fa-solid fa-file-import" style="margin-right: 8px;"></i> BULK IMPORT
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<div class="table-card" style="background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(30px); border: 2px solid rgba(255, 255, 255, 0.7); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);">
+  <div style="margin-bottom: 2rem;">
+      <input type="text" id="assetSearch" placeholder="Search by name, serial, or location..." style="width: 100%; max-width: 400px; background: rgba(255,255,255,0.8);">
+  </div>
+
+  {% if assets|length == 0 %}
+  <div class="empty-state" style="text-align: center; padding: 5rem 0;">
+    <div style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); width: 120px; height: 120px; border-radius: 40px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; color: var(--accent-primary); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);">
+        <i class="fa-solid fa-box-open" style="font-size: 50px;"></i>
+    </div>
+    <h2 style="color: var(--text-main); font-weight: 900;">Inventory Empty</h2>
+    <p style="color: var(--text-muted); font-weight: 600;">Start by adding your first piece of equipment.</p>
+  </div>
+  {% else %}
+  <table class="styled-table" id="assetTable">
+    <thead>
+      <tr>
+        <th>ASSET NAME</th>
+        <th>TYPE</th>
+        {% if current_user.role in ['Admin', 'Manager'] %}
+        <th>PURCHASE COST</th>
+        <th>ESTIMATED VALUE</th>
+        {% endif %}
+        <th>LOCATION</th>
+        <th>STATUS</th>
+        <th>ACTIONS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for asset in assets %}
+      <tr class="asset-row">
+        <td>
+            <div style="font-weight: 900; color: var(--text-main); font-size: 1.05rem;">{{ asset.asset_name }}</div>
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">SN: {{ asset.serial_number if asset.serial_number else 'N/A' }}</div>
+        </td>
+        <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: {% if asset.asset_type == 'Hardware' %}var(--accent-primary){% else %}var(--accent-violet){% endif %};"></div>
+                <div style="font-weight: 700; color: var(--text-main);">{{ asset.asset_type }}</div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ asset.category if asset.category else 'General' }}</div>
+        </td>
+        {% if current_user.role in ['Admin', 'Manager'] %}
+        <td>
+            <div style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); text-decoration: line-through; opacity: 0.6;">₹{{ "{:,.2f}".format(asset.purchase_cost) }}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">BOUGHT {{ asset.purchase_date.strftime('%b %Y') }}</div>
+        </td>
+        <td>
+            {% set curr_val = calc_value(asset) %}
+            <div style="font-size: 1.1rem; font-weight: 900; color: var(--accent-emerald);">₹{{ "{:,.2f}".format(curr_val) }}</div>
+            <div style="font-size: 0.65rem; font-weight: 800; color: {% if curr_val < asset.purchase_cost * 0.5 %}var(--accent-rose){% else %}var(--accent-amber){% endif %};">
+                {{ ((1 - (curr_val / asset.purchase_cost)) * 100) | round(1) if asset.purchase_cost > 0 else 0 }}% DEPRECIATED
+            </div>
+        </td>
+        {% endif %}
+        <td>
+            <div style="font-weight: 700; color: var(--text-main);">{{ asset.location if asset.location else 'Not Set' }}</div>
+        </td>
+        <td>
+          <span class="badge {% if asset.status == 'Available' %}badge-success{% elif asset.status == 'Assigned' %}badge-info{% else %}badge-danger{% endif %}">
+            {{ asset.status }}
+          </span>
+        </td>
+        <td>
+          <div style="display: flex; gap: 10px;">
+            <a href="/asset/{{ asset.id }}" class="btn-submit-custom" style="padding: 10px 18px; font-size: 0.75rem; background: var(--bg-main); color: var(--text-main); border: 1px solid #e2e8f0; box-shadow: none;">
+                <i class="fa-solid fa-eye"></i>
+            </a>
+            {% if current_user.role in ['Admin', 'Manager'] %}
+            <a href="/edit_asset/{{ asset.id }}" class="btn-submit-custom" style="padding: 10px 18px; font-size: 0.75rem; background: var(--bg-main); color: var(--accent-primary); border: 1px solid #e2e8f0; box-shadow: none;">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+
+<script>
+    // Live Search Functionality
+    document.getElementById('assetSearch').addEventListener('keyup', function() {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.asset-row');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = '';
+                row.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }`;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

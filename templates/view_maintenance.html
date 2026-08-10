@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Maintenance Report{% endblock %}
+
+{% block content %}
+
+<h1>Maintenance Report</h1>
+
+<div class="table-card">
+
+    {% if logs|length == 0 %}
+        <div class="empty-state">
+            <i class="fa fa-tools"></i>
+            <h3>No Maintenance Records</h3>
+            <p>No maintenance has been logged yet.</p>
+        </div>
+    {% else %}
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Asset Name</th>
+                    <th>Type</th>
+                    <th>Maintenance Date</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log[0] }}</td>
+                    <td>{{ log[1] }}</td>
+                    <td>{{ log[2] }}</td>
+                    <td>{{ log[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+</div>
+
+{% endblock %}

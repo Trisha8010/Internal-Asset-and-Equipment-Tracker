@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}System Audit Trail | AssetSys Pro{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 4rem;">
+    <h1 style="font-size: 3.5rem;">System Accountability</h1>
+    <p style="color: var(--text-muted); font-weight: 700; font-size: 1.1rem;">Full-spectrum audit logs tracking every administrative and operational pulse.</p>
+</div>
+
+<div class="table-card" style="background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(30px); border: 2px solid rgba(255, 255, 255, 0.7); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);">
+  <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-weight: 900; color: var(--text-main);">Transaction History</h2>
+      <div style="background: var(--accent-primary); color: white; padding: 5px 15px; border-radius: 10px; font-size: 0.8rem; font-weight: 800;">
+          {{ logs|length }} LOGGED EVENTS
+      </div>
+  </div>
+
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>TIMESTAMP</th>
+        <th>OPERATOR</th>
+        <th>ACTION</th>
+        <th>TARGET NODE</th>
+        <th>TECHNICAL DETAILS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="font-family: 'Courier New', monospace; font-weight: 800; font-size: 0.85rem; color: var(--text-muted);">
+            {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+        </td>
+        <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background: var(--bg-sidebar); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); font-weight: 900; font-size: 0.7rem;">
+                    {{ log.user_id if log.user_id else 'SYS' }}
+                </div>
+                <div style="font-weight: 700; color: var(--text-main);">{% if log.user_id %}User ID: {{ log.user_id }}{% else %}SYSTEM{% endif %}</div>
+            </div>
+        </td>
+        <td>
+            <span class="badge" style="background: rgba(37, 99, 235, 0.1); color: var(--accent-primary); border: 1px solid rgba(37, 99, 235, 0.2);">
+                {{ log.action }}
+            </span>
+        </td>
+        <td>
+            <div style="font-weight: 600; color: var(--text-main);">{{ log.target_type }} [ID: {{ log.target_id }}]</div>
+        </td>
+        <td style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+            {{ log.details if log.details else 'No additional telemetry.' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

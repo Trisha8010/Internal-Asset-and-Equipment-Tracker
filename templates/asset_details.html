@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Node Specs - {{ asset.asset_name }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+    <div>
+        <h1 style="font-size: 3.5rem;">Asset Details</h1>
+        <p style="color: var(--text-muted); font-weight: 700; font-size: 1.1rem;">Full overview for Item #{{ asset.id }} [{{ asset.serial_number if asset.serial_number else 'N/A' }}]</p>
+    </div>
+    {% if current_user.role in ['Admin', 'Manager'] %}
+    <div style="display: flex; gap: 15px;">
+        <a href="/edit_asset/{{ asset.id }}" class="btn-submit-custom" style="width: auto; background: #ffffff; color: var(--accent-primary); border: 1px solid #e2e8f0; text-decoration: none; padding: 10px 24px;">
+            <i class="fa-solid fa-pen"></i> EDIT ASSET DETAILS
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2.5rem;">
+    <!-- Technical Specs -->
+    <div class="table-card" style="padding: 3rem; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;">
+            <div>
+                <label style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">ASSET NAME</label>
+                <div style="font-size: 1.5rem; font-weight: 900; color: var(--text-main); margin-top: 8px;">{{ asset.asset_name }}</div>
+            </div>
+            <div>
+                <label style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">CATEGORY</label>
+                <div style="font-size: 1.2rem; font-weight: 800; margin-top: 8px; color: var(--text-main);">{{ asset.asset_type }} / {{ asset.category }}</div>
+            </div>
+            <div>
+                <label style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">LOCATION</label>
+                <div style="font-size: 1.2rem; font-weight: 800; margin-top: 8px; color: var(--text-main);">{{ asset.location if asset.location else 'In Storage' }}</div>
+            </div>
+            <div>
+                <label style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">CURRENT STATUS</label>
+                <div style="margin-top: 10px;">
+                    <span class="badge {% if asset.status == 'Available' %}badge-success{% elif asset.status == 'Assigned' %}badge-info{% else %}badge-warning{% endif %}" style="font-size: 0.85rem; padding: 10px 20px;">
+                        {{ asset.status | upper }}
+                    </span>
+                </div>
+            </div>
+
+            {% if current_user.role in ['Admin', 'Manager'] %}
+            <div style="grid-column: 1 / -1; background: rgba(37, 99, 235, 0.03); padding: 2rem; border-radius: 25px; border: 1px solid rgba(37, 99, 235, 0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.75rem; font-weight: 900; letter-spacing: 1px;">PURCHASE COST</label>
+                    <div style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin-top: 5px;">₹{{ "{:,.2f}".format(asset.purchase_cost) }}</div>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.75rem; font-weight: 900; letter-spacing: 1px;">ESTIMATED VALUE</label>
+                    {% set curr_val = calc_value(asset) %}
+                    <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent-emerald); margin-top: 5px;">₹{{ "{:,.2f}".format(curr_val) }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div>
+                <label style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">PURCHASE DATE</label>
+                <div style="font-size: 1.1rem; font-weight: 700; margin-top: 5px;">{{ asset.purchase_date.strftime('%B %d, %Y') }}</div>
+            </div>
+            <div>
+                <label style="color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">WARRANTY STATUS</label>
+                <div style="font-size: 1.1rem; font-weight: 700; margin-top: 5px; color: {% if asset.warranty_expiry < today %}var(--accent-rose){% else %}var(--accent-emerald){% endif %};">
+                    {{ asset.warranty_expiry.strftime('%B %d, %Y') }}
+                    <span style="font-size: 0.7rem; opacity: 0.7;">({% if asset.warranty_expiry < today %}EXPIRED{% else %}ACTIVE{% endif %})</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 4rem; border-top: 2px solid #f1f5f9; padding-top: 2.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h3 style="color: var(--text-main); font-weight: 900; font-size: 1.4rem;">Assignment History</h3>
+                <div style="background: var(--bg-sidebar); padding: 5px 15px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; color: var(--accent-primary);">USAGE LOG</div>
+            </div>
+            
+            {% if asset.assignments %}
+                <table class="styled-table" style="background: transparent;">
+                    <thead>
+                        <tr>
+                            <th>Assigned To</th>
+                            <th>Date Given</th>
+                            <th>Date Returned</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in asset.assignments %}
+                        <tr style="background: white; border: 1px solid #f1f5f9;">
+                            <td style="font-weight: 800; color: var(--text-main);">{{ assignment.employee.name }}</td>
+                            <td style="font-weight: 600; color: var(--text-muted);">{{ assignment.assigned_date.strftime('%Y-%m-%d') }}</td>
+                            <td style="font-weight: 600; color: var(--text-muted);">{{ assignment.return_date.strftime('%Y-%m-%d') if assignment.return_date else 'Current' }}</td>
+                            <td>
+                                <span class="badge {% if not assignment.return_date %}badge-info{% else %}badge-success{% endif %}" style="font-size: 0.65rem;">
+                                    {{ 'ASSIGNED' if not assignment.return_date else 'RETURNED' }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div style="padding: 2.5rem; background: #f8fafc; border-radius: 25px; text-align: center; color: var(--text-muted); font-style: italic; font-weight: 700; border: 2px dashed #e2e8f0;">
+                    No assignment history for this item.
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 3rem; border-top: 2px solid #f1f5f9; padding-top: 2.5rem;">
+            <h3 style="margin-bottom: 2rem; color: var(--text-main); font-weight: 900; font-size: 1.4rem;">Maintenance & Repairs</h3>
+            {% if asset.maintenances %}
+                <table class="styled-table" style="background: transparent;">
+                    <thead>
+                        <tr>
+                            <th>Service Date</th>
+                            <th>Task Done</th>
+                            <th style="text-align: right;">Cost (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in asset.maintenances %}
+                        <tr style="background: white; border: 1px solid #f1f5f9;">
+                            <td style="font-weight: 600;">{{ log.maintenance_date.strftime('%Y-%m-%d') }}</td>
+                            <td style="font-weight: 700; color: var(--text-main);">{{ log.description }}</td>
+                            <td style="color: var(--accent-rose); font-weight: 900; text-align: right;">₹{{ "{:,.2f}".format(log.cost) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div style="padding: 2rem; background: #f8fafc; border-radius: 20px; text-align: center; color: var(--text-muted); font-style: italic; font-weight: 700;">
+                    No repair history logged.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- QR & Actions -->
+    <div style="display: flex; flex-direction: column; gap: 2.5rem;">
+        {% if asset.image_filename %}
+        <div class="card" style="padding: 1rem; background: #ffffff; border: 1px solid rgba(0,0,0,0.05);">
+            <img src="{{ url_for('static', filename='uploads/assets/' + asset.image_filename) }}" style="width: 100%; border-radius: 25px; object-fit: cover; max-height: 300px;">
+        </div>
+        {% endif %}
+
+        <div class="card" style="text-align: center; background: #ffffff; border: 1px solid rgba(0,0,0,0.05);">
+            <h3 style="margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--accent-primary); letter-spacing: 2px; font-weight: 900;">ASSET QR TAG</h3>
+            <div style="background: white; padding: 25px; border-radius: 35px; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); border: 2px solid #f1f5f9;">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="Asset QR Code" style="width: 100%; max-width: 200px; display: block;">
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; line-height: 1.6;">Scan this code to see asset details instantly.</p>
+        </div>
+
+        {% if current_user.role in ['Admin', 'Manager'] %}
+        <div class="card" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.05);">
+            <h3 style="margin-bottom: 2rem; font-size: 0.85rem; color: var(--accent-primary); letter-spacing: 2px; font-weight: 900;">ACTIONS</h3>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button onclick="window.print()" class="btn-submit-custom" style="background: #ffffff; color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.2); text-align: center; box-shadow: none; font-size: 0.85rem;">
+                    <i class="fa-solid fa-file-pdf" style="margin-right: 12px;"></i> DOWNLOAD PDF REPORT
+                </button>
+                <a href="/add_maintenance?asset_id={{ asset.id }}" class="btn-submit-custom" style="background: #f8fafc; color: var(--text-main); border: 1px solid #e2e8f0; text-align: center; text-decoration: none; box-shadow: none; font-size: 0.85rem;">
+                    <i class="fa-solid fa-screwdriver-wrench" style="margin-right: 12px; color: var(--accent-violet);"></i> LOG MAINTENANCE
+                </a>
+                <a href="/assign_asset?asset_id={{ asset.id }}" class="btn-submit-custom" style="background: #f8fafc; color: var(--text-main); border: 1px solid #e2e8f0; text-align: center; text-decoration: none; box-shadow: none; font-size: 0.85rem;">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 12px; color: var(--accent-primary);"></i> ASSIGN TO EMPLOYEE
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if current_user.role in ['Admin', 'Manager'] %}
+        <div class="card" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.05);">
+            <h3 style="margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--accent-primary); letter-spacing: 2px; font-weight: 900;">VALUE OVER TIME</h3>
+            <canvas id="depreciationChart" height="200"></canvas>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    {% if current_user.role in ['Admin', 'Manager'] %}
+    const ctx = document.getElementById('depreciationChart').getContext('2d');
+    const cost = {{ asset.purchase_cost }};
+    const rate = {{ asset.depreciation_rate }} / 100;
+    
+    // Calculate values for next 5 years
+    const labels = [];
+    const values = [];
+    const currentYear = new Date().getFullYear();
+    
+    for (let i = 0; i <= 5; i++) {
+        labels.push(currentYear + i);
+        // Straight line depreciation: max(0, cost - (cost * rate * years_since_purchase))
+        // Since we want to forecast from 'now', we need to know how old it is now
+        const purchaseYear = new Date('{{ asset.purchase_date }}').getFullYear();
+        const yearsAtPoint = (currentYear + i) - purchaseYear;
+        const val = Math.max(0, cost - (cost * rate * yearsAtPoint));
+        values.push(val);
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Forecasted Value (₹)',
+                data: values,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 4,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#fff',
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#64748b', font: { weight: '700' } },
+                    grid: { display: false }
+                },
+                x: {
+                    ticks: { color: '#64748b', font: { weight: '700' } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

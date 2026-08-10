@@ -1,0 +1,136 @@
+{% extends "base.html" %} 
+{% block title %}Dashboard Overview{% endblock %} 
+{% block content %}
+
+<div style="margin-bottom: 3.5rem;">
+    <h1 style="margin-bottom: 0.5rem; color: var(--text-main);">Dashboard</h1>
+    <p style="color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;">Quick overview of all company equipment and assignments.</p>
+</div>
+
+<div class="dashboard">
+  <div class="card" style="border-top: 8px solid var(--accent-violet); background: linear-gradient(135deg, #ffffff, #f5f3ff);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2 style="color: var(--accent-violet);">{{ total_assets }}</h2>
+        <p>Total Assets</p>
+      </div>
+      <div style="background: var(--accent-violet); padding: 18px; border-radius: 22px; color: #fff; box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);">
+        <i class="fa-solid fa-server fa-2xl"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-top: 8px solid var(--accent-emerald); background: linear-gradient(135deg, #ffffff, #f0fdf4);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2 style="color: var(--accent-emerald);">{{ available_assets }}</h2>
+        <p>Available</p>
+      </div>
+      <div style="background: var(--accent-emerald); padding: 18px; border-radius: 22px; color: #fff; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
+        <i class="fa-solid fa-circle-check fa-2xl"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-top: 8px solid var(--accent-rose); background: linear-gradient(135deg, #ffffff, #fff1f2);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2 style="color: var(--accent-rose);">{{ assigned_assets }}</h2>
+        <p>Deployed</p>
+      </div>
+      <div style="background: var(--accent-rose); padding: 18px; border-radius: 22px; color: #fff; box-shadow: 0 10px 20px rgba(244, 63, 94, 0.3);">
+        <i class="fa-solid fa-user-tag fa-2xl"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-top: 8px solid var(--accent-amber); background: linear-gradient(135deg, #ffffff, #fffbeb);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h2 style="color: var(--accent-amber);">{{ expiring_assets }}</h2>
+        <p>Warranty Alerts</p>
+      </div>
+      <div style="background: var(--accent-amber); padding: 18px; border-radius: 22px; color: #fff; box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);">
+        <i class="fa-solid fa-triangle-exclamation fa-2xl"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if has_assets %}
+<div class="charts" style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 2.5rem;">
+  <div class="table-card">
+    <h3 style="margin-bottom: 2rem; color: var(--text-main); font-weight: 800;">Equipment by Category</h3>
+    <div style="height: 350px;">
+        <canvas id="typeChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <h3 style="margin-bottom: 2rem; color: var(--text-main); font-weight: 800;">Usage Summary</h3>
+    <div style="height: 350px;">
+        <canvas id="statusChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  Chart.defaults.color = '#64748b';
+  Chart.defaults.font.family = "'Outfit', sans-serif";
+  Chart.defaults.font.weight = '600';
+
+  // Bar Chart
+  const typeCtx = document.getElementById('typeChart').getContext('2d');
+  const gradientSapphire = typeCtx.createLinearGradient(0, 0, 0, 400);
+  gradientSapphire.addColorStop(0, '#2563eb');
+  gradientSapphire.addColorStop(1, '#4f46e5');
+
+  new Chart(typeCtx, {
+      type: 'bar',
+      data: {
+          labels: {{ types | safe }},
+          datasets: [{
+              label: 'Quantity',
+              data: {{ type_counts | safe }},
+              backgroundColor: gradientSapphire,
+              borderRadius: 12,
+              barThickness: 45
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+              y: { grid: { color: '#f1f5f9' }, border: { display: false } },
+              x: { grid: { display: false } }
+          }
+      }
+  });
+
+  // Doughnut Chart
+  const statusCtx = document.getElementById('statusChart').getContext('2d');
+  new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+          labels: ['Available', 'Assigned'],
+          datasets: [{
+              data: [{{ available_assets }}, {{ assigned_assets }}],
+              backgroundColor: ['#10b981', '#4f46e5'],
+              borderWidth: 5,
+              borderColor: '#ffffff',
+              hoverOffset: 15
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '75%',
+          plugins: {
+              legend: { position: 'bottom', labels: { padding: 30, usePointStyle: true, font: { size: 12 } } }
+          }
+      }
+  });
+</script>
+{% endif %}
+{% endblock %}

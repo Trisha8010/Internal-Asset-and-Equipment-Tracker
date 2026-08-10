@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Register Infrastructure | AssetSys Pro{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; text-align: center;">
+    <h1 style="font-size: 3.5rem;">Register New Asset</h1>
+    <p style="color: var(--text-muted); font-weight: 700; font-size: 1.1rem;">Add hardware or equipment to your company inventory.</p>
+</div>
+
+<div class="form-page-wrapper">
+    <div class="form-card-premium">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-grid-symmetrical">
+                <div class="form-group form-group-full" style="background: rgba(59, 130, 246, 0.05); padding: 2rem; border-radius: 25px; border: 2px dashed rgba(59, 130, 246, 0.2); text-align: center; margin-bottom: 2rem;">
+                    <label style="margin-bottom: 1rem; display: block;">Asset Photo</label>
+                    <input type="file" name="image" id="imageUpload" style="display: none;" accept="image/*">
+                    <label for="imageUpload" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--accent-primary);">
+                        <i class="fa-solid fa-camera" style="font-size: 2.5rem;"></i>
+                        <span id="fileNameDisplay" style="font-size: 0.9rem; font-weight: 800;">UPLOAD PHOTO</span>
+                    </label>
+                    <script>
+                        document.getElementById('imageUpload').addEventListener('change', function(e) {
+                            const fileName = e.target.files[0] ? e.target.files[0].name : 'UPLOAD ASSET PHOTOGRAPH';
+                            document.getElementById('fileNameDisplay').textContent = fileName;
+                        });
+                    </script>
+                </div>
+
+                <div class="form-group">
+                    <label>Asset Name</label>
+                    <input type="text" name="name" required placeholder="e.g. MacBook Pro, Dell Server">
+                </div>
+
+                <div class="form-group">
+                    <label>Asset Type</label>
+                    <select name="type" required>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Software">Software</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="category" placeholder="Laptops, Servers, etc.">
+                </div>
+
+                <div class="form-group">
+                    <label>Serial Number</label>
+                    <input type="text" name="serial_number" placeholder="Enter S/N">
+                </div>
+
+                <div class="form-group">
+                    <label>Purchase Date</label>
+                    <input type="date" name="purchase_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Purchase Cost (₹)</label>
+                    <input type="number" step="0.01" name="purchase_cost" placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label>Depreciation Rate (%)</label>
+                    <input type="number" step="0.1" name="depreciation_rate" value="20.0">
+                </div>
+
+                <div class="form-group">
+                    <label>Warranty Expiry</label>
+                    <input type="date" name="warranty" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Location</label>
+                    <input type="text" name="location" placeholder="e.g. Office, Data Center">
+                </div>
+
+                <div class="form-group">
+                    <label>Vendor / Supplier</label>
+                    <select name="vendor_id">
+                        <option value="">Select Vendor</option>
+                        {% for vendor in vendors %}
+                        <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group form-group-full">
+                    <label>Asset Status</label>
+                    <select name="status">
+                        <option value="Available">Available</option>
+                        <option value="Maintenance">Maintenance</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit-custom" style="width: 100%; margin-top: 3rem; padding: 1.5rem; font-size: 1.1rem;">
+                <i class="fa-solid fa-plus" style="margin-right: 15px;"></i> Save Asset
+            </button>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/view_assets" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 800; letter-spacing: 1px;">
+                    <i class="fa-solid fa-chevron-left" style="margin-right: 8px;"></i> CANCEL AND RETURN
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

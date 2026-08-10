@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Node Synchronization | AssetSys Pro{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 4rem; text-align: center;">
+    <h1 style="font-size: 3.5rem;">Node Synchronization</h1>
+    <p style="color: var(--text-muted); font-weight: 700; font-size: 1.1rem;">Synchronize physical assets with the digital ecosystem via QR telemetry.</p>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="table-card" style="padding: 2rem; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.7); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);">
+        <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden; border: 2px solid #f1f5f9;"></div>
+        
+        <div style="margin-top: 2rem; text-align: center;">
+            <div id="result" style="padding: 1rem; border-radius: 12px; background: #f8fafc; color: var(--text-muted); font-weight: 700; font-size: 0.9rem; border: 1px solid #e2e8f0; display: none;">
+                Analyzing telemetry...
+            </div>
+            
+            <p style="margin-top: 1.5rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
+                <i class="fa-solid fa-circle-info" style="margin-right: 8px; color: var(--accent-primary);"></i>
+                Position the node's QR code within the scanner viewport for synchronization.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- QR Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    function onScanSuccess(decodedText, decodedResult) {
+        // Expected format: "Asset ID: 123 | ..."
+        console.log(`Scan Result: ${decodedText}`);
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerText = "Node Identified. Synchronizing...";
+        
+        // Extract ID
+        const match = decodedText.match(/Asset ID: (\d+)/);
+        if (match && match[1]) {
+            window.location.href = `/asset/${match[1]}`;
+        } else {
+            document.getElementById('result').innerText = "Unknown Node Identifier.";
+            document.getElementById('result').style.background = "#fee2e2";
+            document.getElementById('result').style.color = "#991b1b";
+        }
+    }
+
+    function onScanFailure(error) {
+        // ignore errors
+    }
+
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+</script>
+{% endblock %}

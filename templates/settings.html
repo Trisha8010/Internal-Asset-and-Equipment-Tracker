@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="form-card-premium" style="max-width: 600px;">
+    <h2><i class="fa-solid fa-gears" style="color: var(--accent-primary);"></i> System Settings</h2>
+    <p style="text-align: center; color: var(--text-muted); margin-top: -2rem; margin-bottom: 3rem; font-weight: 700;">
+        Customize your workspace configuration
+    </p>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group" style="margin-bottom: 2.5rem;">
+            <label for="company_name">Company Name</label>
+            <div style="position: relative;">
+                <i class="fa-solid fa-building" style="position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); color: var(--accent-primary);"></i>
+                <input type="text" name="company_name" id="company_name" value="{{ setting.value if setting else 'AssetSys Pro' }}" placeholder="Enter company name..." style="padding-left: 3.5rem;" required>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 2.5rem; background: rgba(59, 130, 246, 0.05); padding: 1.5rem; border-radius: 20px; border: 2px dashed rgba(59, 130, 246, 0.2); text-align: center;">
+            <label style="margin-bottom: 1rem; display: block;">Company Logo</label>
+            <input type="file" name="company_logo" id="logoUpload" style="display: none;" accept="image/*">
+            <label for="logoUpload" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--accent-primary);">
+                {% if setting and setting.company_logo %}
+                    <img src="{{ url_for('static', filename='uploads/assets/' + setting.company_logo) }}" style="width: 80px; height: 80px; border-radius: 15px; object-fit: cover; margin-bottom: 5px;">
+                {% else %}
+                    <i class="fa-solid fa-image" style="font-size: 2rem;"></i>
+                {% endif %}
+                <span id="logoFileName" style="font-size: 0.8rem; font-weight: 800;">{% if setting and setting.company_logo %}CHANGE LOGO{% else %}UPLOAD LOGO{% endif %}</span>
+            </label>
+            <script>
+                document.getElementById('logoUpload').addEventListener('change', function(e) {
+                    const fileName = e.target.files[0] ? e.target.files[0].name : 'UPLOAD LOGO';
+                    document.getElementById('logoFileName').textContent = fileName;
+                });
+            </script>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 1rem;">
+            <button type="submit" class="btn-submit-custom" style="flex: 2;">
+                <i class="fa-solid fa-floppy-disk"></i> Save Changes
+            </button>
+            <a href="{{ url_for('index') }}" class="btn-submit-custom" style="flex: 1; background: white; color: var(--text-main); border: 1px solid rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: none;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

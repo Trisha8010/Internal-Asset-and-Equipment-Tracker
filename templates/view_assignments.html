@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Asset Assignments{% endblock %}
+
+{% block content %}
+
+<h1>Asset Assignment Report</h1>
+
+<div class="table-card">
+
+    {% if assignments|length == 0 %}
+        <div class="empty-state">
+            <i class="fa fa-link"></i>
+            <h3>No Active Assignments</h3>
+            <p>No assets are currently assigned.</p>
+        </div>
+    {% else %}
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Asset</th>
+                    <th>Type</th>
+                    <th>Assigned Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in assignments %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+</div>
+
+{% endblock %}

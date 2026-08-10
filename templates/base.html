@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} | {{ company_name }}</title>
+    
+    {% block head %}{% endblock %}
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS & Icons -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="bg-blob" style="top: -15%; left: -15%; background: var(--accent-primary); opacity: 0.25;"></div>
+  <div class="bg-blob" style="bottom: -15%; right: -15%; background: var(--accent-rose); opacity: 0.2;"></div>
+  <div class="bg-blob" style="top: 30%; right: 10%; background: var(--accent-violet); opacity: 0.15; width: 400px; height: 400px;"></div>
+  <div class="bg-blob" style="bottom: 20%; left: 10%; background: var(--accent-amber); opacity: 0.15; width: 350px; height: 350px;"></div>
+
+  <div class="layout">
+    {% if current_user.is_authenticated %}
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        {% if company_logo_file %}
+          <img src="{{ url_for('static', filename='uploads/assets/' + company_logo_file) }}" style="width: 42px; height: 42px; border-radius: 10px; object-fit: cover; margin-right: 12px;">
+        {% else %}
+          <div style="background: rgba(255,255,255,0.1); width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+            <i class="fa-solid fa-building-user" style="color: white; font-size: 1.3rem;"></i>
+          </div>
+        {% endif %}
+        <h2>{{ company_name }}</h2>
+      </div>
+      
+      <div class="nav-divider">System</div>
+      <nav>
+        <a href="{{ url_for('index') }}" class="{{ 'active' if request.path == url_for('index') else '' }}">
+          <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('view_assets') }}" class="{{ 'active' if request.path == url_for('view_assets') else '' }}">
+          <i class="fa-solid fa-box-archive"></i> <span>Inventory</span>
+        </a>
+      </nav>
+
+      {% if current_user.role in ['Admin', 'Manager'] %}
+      <div class="nav-divider">Management</div>
+      <nav>
+        <a href="{{ url_for('add_asset') }}" class="{{ 'active' if request.path == url_for('add_asset') else '' }}">
+          <i class="fa-solid fa-plus-circle"></i> <span>New Asset</span>
+        </a>
+        <a href="{{ url_for('assign_asset') }}" class="{{ 'active' if request.path == url_for('assign_asset') else '' }}">
+          <i class="fa-solid fa-link"></i> <span>Assign</span>
+        </a>
+        <a href="{{ url_for('vendors') }}" class="{{ 'active' if request.path == url_for('vendors') else '' }}">
+          <i class="fa-solid fa-shop"></i> <span>Vendors</span>
+        </a>
+      </nav>
+      {% endif %}
+
+      <div class="nav-divider">Operations</div>
+      <nav>
+        <a href="{{ url_for('add_maintenance') }}" class="{{ 'active' if request.path == url_for('add_maintenance') else '' }}">
+          <i class="fa-solid fa-screwdriver-wrench"></i> <span>Maintenance</span>
+        </a>
+        <a href="{{ url_for('reports') }}" class="{{ 'active' if request.path == url_for('reports') else '' }}">
+          <i class="fa-solid fa-file-invoice-dollar"></i> <span>Reports</span>
+        </a>
+      </nav>
+      
+      {% if current_user.role == 'Employee' %}
+      <div class="nav-divider">Personal</div>
+      <nav>
+        <a href="{{ url_for('my_assets') }}" class="{{ 'active' if request.path == url_for('my_assets') else '' }}">
+          <i class="fa-solid fa-user-tag"></i> <span>My Equipment</span>
+        </a>
+      </nav>
+      {% endif %}
+
+    </aside>
+    {% endif %}
+
+    <main class="content {% if not current_user.is_authenticated %}full-width-center{% endif %}">
+      {% if current_user.is_authenticated %}
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3.5rem; position: relative;">
+        <div style="position: relative; width: 450px;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1rem;"></i>
+          <input type="text" id="globalSearch" placeholder="Search for equipment, serial numbers..." style="padding: 1.1rem 1.5rem 1.1rem 3.5rem; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); background: white; width: 100%; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <a href="{{ url_for('scan_qr') }}" title="Scan QR Code" style="background: white; border: 1px solid rgba(0,0,0,0.05); width: 50px; height: 50px; border-radius: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.3s ease;">
+            <i class="fa-solid fa-qrcode" style="color: var(--accent-violet); font-size: 1.2rem;"></i>
+          </a>
+          
+          <div style="position: relative;">
+            <button id="notiBell" style="background: white; border: 1px solid rgba(0,0,0,0.05); width: 50px; height: 50px; border-radius: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.3s ease;">
+              <i class="fa-solid fa-bell" style="color: var(--accent-primary); font-size: 1.2rem;"></i>
+              {% if notifications|length > 0 %}
+              <span style="position: absolute; top: -5px; right: -5px; background: var(--accent-rose); color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; font-weight: 900; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 5px 10px rgba(244, 63, 94, 0.3);">
+                {{ notifications|length }}
+              </span>
+              {% endif %}
+            </button>
+
+            <!-- Notification Dropdown -->
+            <div id="notiDropdown" style="display: none; position: absolute; top: 70px; right: 0; width: 350px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 25px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid rgba(255,255,255,0.8); z-index: 1000; padding: 1.5rem;">
+                <h4 style="font-weight: 900; color: var(--text-main); margin-bottom: 1.5rem; display: flex; justify-content: space-between;">
+                    Recent Alerts 
+                    <span style="font-size: 0.7rem; background: var(--bg-sidebar); padding: 4px 10px; border-radius: 8px; color: var(--accent-primary);">UPDATED NOW</span>
+                </h4>
+                {% if notifications|length == 0 %}
+                    <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 1rem;">No new alerts.</p>
+                {% else %}
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        {% for n in notifications %}
+                        <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; display: flex; gap: 12px; align-items: flex-start;">
+                            <div style="background: {% if n.type == 'Warranty' %}rgba(245, 158, 11, 0.1){% else %}rgba(37, 99, 235, 0.1){% endif %}; padding: 10px; border-radius: 12px;">
+                                <i class="fa-solid {% if n.type == 'Warranty' %}fa-shield-halved{% else %}fa-screwdriver-wrench{% endif %}" style="color: {% if n.type == 'Warranty' %}var(--accent-amber){% else %}var(--accent-primary){% endif %};"></i>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); line-height: 1.4;">{{ n.msg }}</p>
+                                <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">{{ n.date.strftime('%b %d, %Y') }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+          </div>
+
+          <div style="position: relative; cursor: pointer; display: flex; align-items: center; gap: 15px;" id="userProfileToggle">
+            <div style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-violet)); width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.2rem; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">
+              {{ current_user.username[0] | upper }}
+            </div>
+
+            <!-- User Dropdown Menu -->
+            <div id="userDropdown" style="display: none; position: absolute; top: 70px; right: 0; width: 220px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid rgba(255,255,255,0.8); z-index: 1000; padding: 1rem; overflow: hidden;">
+                <div style="padding: 0.5rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 0.5rem;">
+                    <p style="font-weight: 900; font-size: 0.95rem; color: var(--text-main); margin-bottom: 2px;">{{ current_user.username }}</p>
+                    <p style="font-size: 0.7rem; color: var(--accent-primary); font-weight: 800; text-transform: uppercase;">{{ current_user.role }} ACCESS</p>
+                </div>
+                
+                {% if current_user.role == 'Admin' %}
+                <a href="{{ url_for('settings') }}" style="display: flex; align-items: center; gap: 12px; padding: 0.8rem; color: var(--text-main); text-decoration: none; font-weight: 800; font-size: 0.9rem; border-radius: 12px; transition: all 0.3s ease;" class="dropdown-item">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </a>
+                {% endif %}
+
+                <a href="{{ url_for('logout') }}" style="display: flex; align-items: center; gap: 12px; padding: 0.8rem; color: #ef4444; text-decoration: none; font-weight: 800; font-size: 0.9rem; border-radius: 12px; transition: all 0.3s ease;" class="dropdown-item">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <script>
+        // Notification Toggle
+        const bell = document.getElementById('notiBell');
+        const notiDropdown = document.getElementById('notiDropdown');
+        if (bell) {
+            bell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.style.display = 'none';
+                notiDropdown.style.display = notiDropdown.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+
+        // User Dropdown Toggle
+        const profileToggle = document.getElementById('userProfileToggle');
+        const userDropdown = document.getElementById('userDropdown');
+        if (profileToggle) {
+            profileToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notiDropdown.style.display = 'none';
+                userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+
+        document.addEventListener('click', () => {
+            if (notiDropdown) notiDropdown.style.display = 'none';
+            if (userDropdown) userDropdown.style.display = 'none';
+        });
+      </script>
+      {% endif %}
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="padding: 1.2rem; border-radius: 16px; margin-bottom: 2rem; background: {% if category == 'success' %}#dcfce7{% elif category == 'info' %}#e0f2fe{% else %}#fee2e2{% endif %}; color: {% if category == 'success' %}#166534{% elif category == 'info' %}#075985{% else %}#991b1b{% endif %}; font-weight: 700; border: 1px solid rgba(0,0,0,0.05);">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    // Minimalistic interactions
+    document.querySelectorAll('.sidebar nav a').forEach(a => {
+        a.addEventListener('click', () => {
+            a.style.transform = 'scale(0.98)';
+        });
+    });
+
+    // Auto-hide flash messages
+    setTimeout(function() {
+        let alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            alert.style.transition = "all 0.5s ease";
+            alert.style.opacity = "0";
+            alert.style.transform = "translateY(-10px)";
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 4000);
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

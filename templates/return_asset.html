@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Return Asset{% endblock %}
+
+{% block content %}
+
+<div class="form-page-wrapper">
+    
+    <div class="form-card">
+
+        <h2 class="form-title">
+            <i class="fa fa-undo"></i> Return Asset
+        </h2>
+
+        <form method="POST">
+            
+            <div class="form-grid">
+                <div class="mb-3">
+                    <label for="assignment_id">Select Assigned Asset</label>
+                    <select id="assignment_id" name="assignment_id" class="form-control" required>
+                        <option value="" disabled selected>Select an Assignment</option>
+                        {% for row in assignments %}
+                            <option value="{{ row.id }}">
+                                {{ row.asset.asset_name }} → {{ row.employee.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="return_date">Return Date</label>
+                    <input type="date" id="return_date" name="return_date" class="form-control" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit-custom">
+                <i class="fa fa-paper-plane"></i> Submit Return
+            </button>
+
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="/" class="back-link">← Back to Dashboard</a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
