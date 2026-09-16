@@ -853,6 +853,9 @@ def create_admin():
             db.session.commit()
             print("Default Admin user created. Set DEFAULT_ADMIN_PASSWORD env var to control the password.")
 
+with app.app_context():
+    db.create_all()
+
 create_admin()
 
 if __name__ == "__main__":
