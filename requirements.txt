@@ -5,3 +5,4 @@ Flask-Mail
 APScheduler
 qrcode
 Werkzeug
+psycopg2-binary==2.9.9
